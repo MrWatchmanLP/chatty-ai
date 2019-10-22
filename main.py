@@ -38,14 +38,14 @@ def send_message(session_api, peer_id, message=None, attachment=None, keyboard=N
 while True:
     for event in longpoll.listen():
         if event.type == VkBotEventType.MESSAGE_NEW:
-            if event.obj.text.lower()[:25] != "[club178923582|@chattyai]":
-                learning_data_local.append(event.obj.text.lower())
-                counter = counter + 1
-            if counter == 50:
-                counter = 0
-                generator = mc.StringGenerator(learning_data=learning_data_local, order=1)
-                send_message(session_api, event.obj.peer_id, message=generator.generate(count=1))
             if event.obj.peer_id != event.obj.from_id:
+                if event.obj.text.lower()[:25] != "[club178923582|@chattyai]":
+                    learning_data_local.append(event.obj.text.lower())
+                    counter = counter + 1
+                if counter == 50:
+                    counter = 0
+                    generator = mc.StringGenerator(learning_data=learning_data_local, order=1)
+                    send_message(session_api, event.obj.peer_id, message=generator.generate(count=1))
                 if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
                         "команды") > -1:
                     send_message(session_api, event.obj.peer_id, message="Команды бота: \n \n 1) @chattyai рыгни\n 2) @chattyai анекдот")
