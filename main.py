@@ -36,9 +36,9 @@ while True:
     for event in longpoll.listen():
         if event.type == VkBotEventType.MESSAGE_NEW:
             if event.obj.peer_id != event.obj.from_id:
-                if event.obj.text.lower() == "[club178923582|@chattyai] команды":
+                if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find("команды") > -1:
                     send_message(session_api, event.obj.peer_id, message="Команды бота: \n \n 1) @chattyai рыгни")
-                if event.obj.text.lower() == "[club178923582|@chattyai] рыгни":
+                if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find("рыгни") > -1:
                     send_message(session_api, event.obj.peer_id, message="*Рыгает*")
             if event.obj.peer_id == event.obj.from_id:
                 send_message(session_api, event.obj.from_id, message="Каво?")
