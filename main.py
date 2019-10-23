@@ -36,19 +36,21 @@ text = ""
 order = 5
 messages_counter = 0
 
+
 def markov_blanket(text, order):
     result = {}
 
     for i in range(len(text) - order + 1):
         ngram = ""
         for off in range(order):
-            ngram += text[i+off]
+            ngram += text[i + off]
 
         if not ngram in result:
             result[ngram] = []
         if i < len(text) - order:
-            result[ngram].append(text[i+order])
+            result[ngram].append(text[i + order])
     return result
+
 
 def markov_chain(blanket):
     keys = blanket.keys()
