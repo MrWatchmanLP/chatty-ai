@@ -69,6 +69,7 @@ def markov_chain(blanket):
             break
     return new_text
 
+
 def speak():
     new_text = markov_chain(markov_blanket(text, order))
     send_message(session_api, event.obj.peer_id, message=new_text)
@@ -84,34 +85,35 @@ while True:
                 if messages_counter >= messages_limit:
                     messages_counter = 0
                     speak()
-                if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
+                elif event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
                         "команды") > -1:
                     send_message(session_api, event.obj.peer_id, message=commands)
-                if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
-                        "рыгни") > -1:
-                    send_message(session_api, event.obj.peer_id, message="*Рыгает*")
-                if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
-                        "анекдот") > -1:
-                    send_message(session_api, event.obj.peer_id, message="Колобок повесился")
-                if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
-                        "заговоришь") > -1:
-                    send_message(session_api, event.obj.peer_id,
-                                 message="Из " + str(messages_limit) + " есть только " + str(messages_counter))
-                if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
-                        "разумность") > -1:
-                    for i in range(3):
-                        if event.obj.lower()[-i] == ' ':
-                            order = int(event.obj.text[-i:])
-                        else:
-                            order = 5
-                if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
-                        "лимит") > -1:
-                    for i in range(3):
-                        if event.obj.lower()[-i] == ' ':
-                            messages_limit = int(event.obj.text[-i:])
-                        else:
-                            messages_limit = 50
-                if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find("говори"):
-                    speak()
-            if event.obj.peer_id == event.obj.from_id:
-                send_message(session_api, event.obj.from_id, message="Каво?")
+                    if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
+                            "рыгни") > -1:
+                        send_message(session_api, event.obj.peer_id, message="*Рыгает*")
+                    if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
+                            "анекдот") > -1:
+                        send_message(session_api, event.obj.peer_id, message="Колобок повесился")
+                    if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
+                            "заговоришь") > -1:
+                        send_message(session_api, event.obj.peer_id,
+                                     message="Из " + str(messages_limit) + " есть только " + str(messages_counter))
+                    if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
+                            "разумность") > -1:
+                        for i in range(3):
+                            if event.obj.lower()[-i] == ' ':
+                                order = int(event.obj.text[-i:])
+                            else:
+                                order = 5
+                    if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
+                            "лимит") > -1:
+                        for i in range(3):
+                            if event.obj.lower()[-i] == ' ':
+                                messages_limit = int(event.obj.text[-i:])
+                            else:
+                                messages_limit = 50
+                    if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
+                            "говори"):
+                        speak()
+                if event.obj.peer_id == event.obj.from_id:
+                    send_message(session_api, event.obj.from_id, message="Каво?")
