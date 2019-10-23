@@ -36,8 +36,7 @@ text = ""
 order = 5
 messages_counter = 0
 messages_limit = 50
-commands = "Команды бота:\n\n1)@chattyai рыгни\n2)@chattyai анекдот\n 3)@chattyai когда заговоришь\n 4)@chattyai " \
-           "разумность 1-9\n5)@chattyai говори\n6)@chattyai лимит сообщений"
+commands = "Команды бота:\n\n1)@chattyai рыгни\n2)@chattyai анекдот\n 3)@chattyai когда заговоришь"
 
 
 def markov_blanket(text, order):
@@ -95,20 +94,5 @@ while True:
                     if event.obj.text.lower().find("заговоришь") > -1:
                         send_message(session_api, event.obj.peer_id,
                                      message="Из " + str(messages_limit) + " есть только " + str(messages_counter))
-                    if event.obj.text.lower().find("разумность") > -1:
-                        for i in range(3):
-                            if event.obj.lower()[-i] == ' ':
-                                order = int(event.obj.text[-i:])
-                            else:
-                                order = 5
-                    if event.obj.text.lower().find(
-                            "лимит") > -1:
-                        for i in range(3):
-                            if event.obj.lower()[-i] == ' ':
-                                messages_limit = int(event.obj.text[-i:])
-                            else:
-                                messages_limit = 50
-                    if event.obj.text.lower().find("говори"):
-                        speak()
             elif event.obj.peer_id == event.obj.from_id:
                 send_message(session_api, event.obj.from_id, message="Каво?")
