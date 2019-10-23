@@ -75,7 +75,7 @@ while True:
     for event in longpoll.listen():
         if event.type == VkBotEventType.MESSAGE_NEW:
             if event.obj.peer_id != event.obj.from_id:
-                if event.obj.text.lower()[:25] != "[club178923582|@chattyai]":
+                if event.obj.text.lower()[:25] != "[club178923582|@chattyai]" and event.obj.text != "":
                     text += event.obj.text + "\n"
                     messages_counter += 1
                 if messages_counter >= 50:
