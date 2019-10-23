@@ -79,6 +79,7 @@ while True:
                     text += event.obj.text + "\n"
                     messages_counter += 1
                 if messages_counter >= 50:
+                    messages_counter = 0
                     new_text = markov_chain(markov_blanket(text, order))
                     send_message(session_api, event.obj.peer_id, message=new_text)
                 if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
@@ -91,5 +92,9 @@ while True:
                 if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
                         "анекдот") > -1:
                     send_message(session_api, event.obj.peer_id, message="Колобок повесился")
+                if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
+                        "когда заговоришь") > -1:
+                    send_message(session_api, event.obj.peer_id, message="Заговорю, когда в беседе наберётся 50 "
+                                                                         "сообщений, пока что их: "+messages_counter)
             if event.obj.peer_id == event.obj.from_id:
                 send_message(session_api, event.obj.from_id, message="Каво?")
