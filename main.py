@@ -2,14 +2,11 @@ import random
 import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
-import mc
 
 token = "8ebd06e6b39901e266522e3bfb750bec56002534ff8d0f9faa8acc1b2a28422770ed7eca2e0dbe30e4ea5"
 vk_session = vk_api.VkApi(token=token)
 session_api = vk_session.get_api()
 longpoll = VkBotLongPoll(vk_session, 178923582)
-learning_data_local = []
-counter = 0
 
 
 def create_keyboard(response):
