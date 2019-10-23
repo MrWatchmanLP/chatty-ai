@@ -35,6 +35,9 @@ def send_message(session_api, peer_id, message=None, attachment=None, keyboard=N
 text = ""
 order = 5
 messages_counter = 0
+messages_limit = 50
+commands = "Команды бота:\n\n1)@chattyai рыгни\n2)@chattyai анекдот\n 3)@chattyai когда заговоришь\n 4)@chattyai " \
+           "разумность 1-9\n5)@chattyai говори\n6)@chattyai лимит сообщений"
 
 
 def markov_blanket(text, order):
@@ -56,36 +59,34 @@ def markov_chain(blanket):
     keys = blanket.keys()
     ngram = random.choice(list(keys))
     new_text = ngram
-    cycles_counter = 0
-    while True:
+    for i in range(100):
         try:
             nxt = random.choice(blanket[ngram])
             new_text += nxt
             ngram += nxt
             ngram = ngram[1:]
-            cycles_counter += 1
-            if cycles_counter == 5000:
-                break
         except IndexError:
             break
     return new_text
+
+def speak():
+    new_text = markov_chain(markov_blanket(text, order))
+    send_message(session_api, event.obj.peer_id, message=new_text)
 
 
 while True:
     for event in longpoll.listen():
         if event.type == VkBotEventType.MESSAGE_NEW:
             if event.obj.peer_id != event.obj.from_id:
-                if event.obj.text.lower()[:25] != "[club178923582|@chattyai]" and event.obj.text != "":
+                if event.obj.text != "" and event.obj.text.lower()[:25] != "[club178923582|@chattyai]":
                     text += event.obj.text + "\n"
                     messages_counter += 1
-                if messages_counter >= 50:
+                if messages_counter >= messages_limit:
                     messages_counter = 0
-                    new_text = markov_chain(markov_blanket(text, order))
-                    send_message(session_api, event.obj.peer_id, message=new_text)
+                    speak()
                 if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
                         "команды") > -1:
-                    send_message(session_api, event.obj.peer_id,
-                                 message="Команды бота: \n \n 1) @chattyai рыгни\n 2) @chattyai анекдот")
+                    send_message(session_api, event.obj.peer_id, message=commands)
                 if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
                         "рыгни") > -1:
                     send_message(session_api, event.obj.peer_id, message="*Рыгает*")
@@ -94,6 +95,23 @@ while True:
                     send_message(session_api, event.obj.peer_id, message="Колобок повесился")
                 if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
                         "заговоришь") > -1:
-                    send_message(session_api, event.obj.peer_id, message="Из 50 есть только "+str(messages_counter))
+                    send_message(session_api, event.obj.peer_id,
+                                 message="Из " + str(messages_limit) + " есть только " + str(messages_counter))
+                if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
+                        "разумность") > -1:
+                    for i in range(3):
+                        if event.obj.lower()[-i] == ' ':
+                            order = int(event.obj.text[-i:])
+                        else:
+                            order = 5
+                if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
+                        "лимит") > -1:
+                    for i in range(3):
+                        if event.obj.lower()[-i] == ' ':
+                            messages_limit = int(event.obj.text[-i:])
+                        else:
+                            messages_limit = 50
+                if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find("говори"):
+                    speak()
             if event.obj.peer_id == event.obj.from_id:
                 send_message(session_api, event.obj.from_id, message="Каво?")
