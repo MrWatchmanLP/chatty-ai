@@ -35,20 +35,57 @@ def send_message(session_api, peer_id, message=None, attachment=None, keyboard=N
                               attachment=attachment, keyboard=keyboard, payload=payload)
 
 
+text = ""
+order = 5
+messages_counter = 0
+
+def markov_blanket(text, order):
+    result = {}
+
+    for i in range(len(text) - order + 1):
+        ngram = ""
+        for off in range(order):
+            ngram += text[i+off]
+
+        if not ngram in result:
+            result[ngram] = []
+        if i < len(text) - order:
+            result[ngram].append(text[i+order])
+    return result
+
+def markov_chain(blanket):
+    keys = blanket.keys()
+    ngram = random.choice(list(keys))
+    new_text = ngram
+    cycles_counter = 0
+    while True:
+        try:
+            nxt = random.choice(blanket[ngram])
+            new_text += nxt
+            ngram += nxt
+            ngram = ngram[1:]
+            cycles_counter += 1
+            if cycles_counter == 5000:
+                break
+        except IndexError:
+            break
+    return new_text
+
+
 while True:
     for event in longpoll.listen():
         if event.type == VkBotEventType.MESSAGE_NEW:
             if event.obj.peer_id != event.obj.from_id:
                 if event.obj.text.lower()[:25] != "[club178923582|@chattyai]":
-                    learning_data_local.append(event.obj.text.lower())
-                    counter = counter + 1
-                if counter == 50:
-                    counter = 0
-                    generator = mc.StringGenerator(learning_data=learning_data_local, order=1)
-                    send_message(session_api, event.obj.peer_id, message=generator.generate(count=1))
+                    text += event.obj.text + "\n"
+                    messages_counter += 1
+                if messages_counter >= 50:
+                    new_text = markov_chain(markov_blanket(text, order))
+                    send_message(session_api, event.obj.peer_id, message=new_text)
                 if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
                         "команды") > -1:
-                    send_message(session_api, event.obj.peer_id, message="Команды бота: \n \n 1) @chattyai рыгни\n 2) @chattyai анекдот")
+                    send_message(session_api, event.obj.peer_id,
+                                 message="Команды бота: \n \n 1) @chattyai рыгни\n 2) @chattyai анекдот")
                 if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
                         "рыгни") > -1:
                     send_message(session_api, event.obj.peer_id, message="*Рыгает*")
