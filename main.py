@@ -115,5 +115,5 @@ while True:
                     if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
                             "говори"):
                         speak()
-                if event.obj.peer_id == event.obj.from_id:
-                    send_message(session_api, event.obj.from_id, message="Каво?")
+            elif event.obj.peer_id == event.obj.from_id:
+                send_message(session_api, event.obj.from_id, message="Каво?")
