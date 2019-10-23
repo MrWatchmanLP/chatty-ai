@@ -82,9 +82,9 @@ while True:
                 if event.obj.text != "" and event.obj.text.lower()[:25] != "[club178923582|@chattyai]":
                     text += event.obj.text + "\n"
                     messages_counter += 1
-                if messages_counter >= messages_limit:
-                    messages_counter = 0
-                    speak()
+                    if messages_counter >= messages_limit:
+                        messages_counter = 0
+                        speak()
                 elif event.obj.text.lower()[:25] == "[club178923582|@chattyai]":
                     if event.obj.text.lower().find("команды") > -1:
                         send_message(session_api, event.obj.peer_id, message=commands)
