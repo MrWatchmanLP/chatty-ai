@@ -94,7 +94,6 @@ while True:
                     send_message(session_api, event.obj.peer_id, message="Колобок повесился")
                 if event.obj.text.lower()[:25] == "[club178923582|@chattyai]" and event.obj.text.lower().find(
                         "заговоришь") > -1:
-                    send_message(session_api, event.obj.peer_id, message="Заговорю, когда в беседе наберётся 50 "
-                                                                         "сообщений, пока что их: "+messages_counter)
+                    send_message(session_api, event.obj.peer_id, message="Из 50 есть только "+messages_counter)
             if event.obj.peer_id == event.obj.from_id:
                 send_message(session_api, event.obj.from_id, message="Каво?")
