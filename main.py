@@ -106,13 +106,13 @@ while True:
                         msg = str(messages_counter) + "/" + str(messages_limit)
                         send_message(session_api, event.obj.peer_id, msg)
                     if eventText.find("лимит") > -1:
-                        if int(eventText[-1]) < 10:
+                        if int(eventText[-2]) < 50:
                             set_limit(int(eventText[-1]))
                             send_message(session_api, event.obj.peer_id, message="Лимит теперь " + str(messages_limit))
                         else:
                             send_message(session_api, event.obj.peer_id, message="Лимит остался прежним")
                     if eventText.find("порядок") > -1:
-                        if int(eventText[-1]) < 10:
+                        if int(eventText[-1]) > 0:
                             set_order(int(eventText[-1]))
                             send_message(session_api, event.obj.peer_id, message="Порядок теперь " + str(order))
                         else:
