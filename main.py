@@ -66,7 +66,7 @@ class markov:
 
     def add_to_file(self, line):
         self.file = open("file.txt", "a")
-        self.file.write(line)
+        self.file.write(line + "\n")
         self.file.close()
 
     def clear_file(self):
@@ -84,17 +84,15 @@ class markov:
         self.file.close()
         return " ".join(result[self.order:])
 
-    def get_sentence(self, length_of_sentence):
-        self.train(self)
-        return self.generate(self, length_of_sentence)
-
 
 mark = markov(5)
 sentence_length = 10
 
 
 def speak():
-    send_message(session_api, event.obj.peer_id, mark.get_sentence(sentence_length))
+    mark.train()
+    sentence = mark.generate(sentence_length)
+    send_message(session_api, event.obj.peer_id, sentence)
 
 
 def set_limit(limit):
@@ -137,7 +135,7 @@ while True:
                     if eventText.find("предложение") > -1:
                         if int(eventText[-2]) < 50:
                             set_sentence_length(int(eventText[-2:]))
-                            send_message(session_api, event.obj.peer_id, message="Длина теперь" + str(messages_limit))
+                            send_message(session_api, event.obj.peer_id, message="Длина теперь" + str(sentence_length))
                         else:
                             send_message(session_api, event.obj.peer_id, message="Длина осталась прежней")
                     if eventText.find("очистить") > -1:
