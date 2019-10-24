@@ -107,7 +107,7 @@ while True:
                         send_message(session_api, event.obj.peer_id, msg)
                     if eventText.find("лимит") > -1:
                         if int(eventText[-2]) < 50:
-                            set_limit(int(eventText[-1]))
+                            set_limit(int(eventText[-2:]))
                             send_message(session_api, event.obj.peer_id, message="Лимит теперь " + str(messages_limit))
                         else:
                             send_message(session_api, event.obj.peer_id, message="Лимит остался прежним")
