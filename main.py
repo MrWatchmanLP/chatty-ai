@@ -74,25 +74,51 @@ def speak():
     send_message(session_api, event.obj.peer_id, message=new_text)
 
 
+def set_limit(limit):
+    global messages_limit
+    messages_limit = limit
+
+
+def set_order(limit):
+    global order
+    order = limit
+
+
 while True:
     for event in longpoll.listen():
         if event.type == VkBotEventType.MESSAGE_NEW:
+            eventText = event.obj.text.lower()
             if event.obj.peer_id != event.obj.from_id:
-                if event.obj.text != "" and event.obj.text.lower()[:25] != "[club178923582|@chattyai]":
-                    text += event.obj.text + "\n"
+                if eventText != "" and eventText[:25] != "[club178923582|@chattyai]":
+                    text += eventText + "\n"
                     messages_counter += 1
                     if messages_counter >= messages_limit:
                         messages_counter = 0
                         speak()
-                elif event.obj.text.lower()[:25] == "[club178923582|@chattyai]":
-                    if event.obj.text.lower().find("команды") > -1:
+                elif eventText[:25] == "[club178923582|@chattyai]":
+                    if eventText.find("команды") > -1:
                         send_message(session_api, event.obj.peer_id, message=commands)
-                    if event.obj.text.lower().find("рыгни") > -1:
+                    if eventText.find("рыгни") > -1:
                         send_message(session_api, event.obj.peer_id, message="*Рыгает*")
-                    if event.obj.text.lower().find("анекдот") > -1:
+                    if eventText.find("анекдот") > -1:
                         send_message(session_api, event.obj.peer_id, message="Колобок повесился")
-                    if event.obj.text.lower().find("заговоришь") > -1:
-                        send_message(session_api, event.obj.peer_id,
-                                     message="Из " + str(messages_limit) + " есть только " + str(messages_counter))
+                    if eventText.find("заговоришь") > -1:
+                        msg = str(messages_counter) + "/" + str(messages_limit)
+                        send_message(session_api, event.obj.peer_id, msg)
+                    if eventText.find("лимит") > -1:
+                        if int(eventText[-1]) < 10:
+                            set_limit(int(eventText[-1]))
+                            send_message(session_api, event.obj.peer_id, message="Лимит теперь " + str(messages_limit))
+                        else:
+                            send_message(session_api, event.obj.peer_id, message="Лимит остался прежним")
+                    if eventText.find("порядок") > -1:
+                        if int(eventText[-1]) < 10:
+                            set_order(int(eventText[-1]))
+                            send_message(session_api, event.obj.peer_id, message="Порядок теперь " + str(order))
+                        else:
+                            send_message(session_api, event.obj.peer_id, message="Порядок остался прежним")
+                    if eventText.find("очистить") > -1:
+                        text = ""
+                        messages_counter = 0
             elif event.obj.peer_id == event.obj.from_id:
                 send_message(session_api, event.obj.from_id, message="Каво?")
