@@ -32,46 +32,69 @@ def send_message(session_api, peer_id, message=None, attachment=None, keyboard=N
                               attachment=attachment, keyboard=keyboard, payload=payload)
 
 
-text = ""
-order = 5
 messages_counter = 0
 messages_limit = 50
-commands = "Команды бота:\n\n1)@chattyai рыгни\n2)@chattyai анекдот\n 3)@chattyai когда заговоришь"
+commands = "Команды бота:\n\n1)@chattyai рыгни\n2)@chattyai анекдот\n3)@chattyai когда заговоришь\n4)@chattyai " \
+           "лимит\n5)@chattyai предложение\n6)@chattyai очистить "
 
 
-def markov_blanket(text, order):
-    result = {}
+class markov:
+    def __init__(self, markov_order):
+        self.order = markov_order
+        self.group_size = self.order + 1
+        self.file = open("file.txt", "w")
+        self.file.close()
+        self.text = None
+        self.graph = {}
+        return
 
-    for i in range(len(text) - order + 1):
-        ngram = ""
-        for off in range(order):
-            ngram += text[i + off]
+    def train(self):
+        self.file = open("file.txt", "r")
+        self.text = self.file.read().split()
+        self.text = self.text + self.text[:self.order]
 
-        if not ngram in result:
-            result[ngram] = []
-        if i < len(text) - order:
-            result[ngram].append(text[i + order])
-    return result
+        for i in range(0, len(self.text) - self.group_size):
+
+            key = tuple(self.text[i:i + self.order])
+            value = self.text[i + self.order]
+
+            if key in self.graph:
+                self.graph[key].apped(value)
+            else:
+                self.graph[key] = [value]
+        return
+
+    def add_to_file(self, line):
+        self.file = open("file.txt", "a")
+        self.file.write(line)
+        self.file.close()
+
+    def clear_file(self):
+        self.file = open("file.txt", "w")
+        self.file.close()
+
+    def generate(self, length):
+        index = random.randint(0, len(self.text) - self.order)
+        result = self.text[index:index + self.order]
+
+        for i in range(length):
+            state = tuple(result[len(result) - self.order:])
+            next_word = random.choice(self.graph[state])
+            result.append(next_word)
+        self.file.close()
+        return " ".join(result[self.order:])
+
+    def get_sentence(self, length_of_sentence):
+        self.train(self)
+        return self.generate(self, length_of_sentence)
 
 
-def markov_chain(blanket):
-    keys = blanket.keys()
-    ngram = random.choice(list(keys))
-    new_text = ngram
-    for i in range(100):
-        try:
-            nxt = random.choice(blanket[ngram])
-            new_text += nxt
-            ngram += nxt
-            ngram = ngram[1:]
-        except IndexError:
-            break
-    return new_text
+mark = markov(5)
+sentence_length = 10
 
 
 def speak():
-    new_text = markov_chain(markov_blanket(text, order))
-    send_message(session_api, event.obj.peer_id, message=new_text)
+    send_message(session_api, event.obj.peer_id, mark.get_sentence(sentence_length))
 
 
 def set_limit(limit):
@@ -79,9 +102,9 @@ def set_limit(limit):
     messages_limit = limit
 
 
-def set_order(limit):
-    global order
-    order = limit
+def set_sentence_length(length):
+    global sentence_length
+    sentence_length = length
 
 
 while True:
@@ -90,7 +113,7 @@ while True:
             eventText = event.obj.text.lower()
             if event.obj.peer_id != event.obj.from_id:
                 if eventText != "" and eventText[:25] != "[club178923582|@chattyai]":
-                    text += eventText + "\n"
+                    mark.add_to_file(eventText)
                     messages_counter += 1
                     if messages_counter >= messages_limit:
                         messages_counter = 0
@@ -111,14 +134,14 @@ while True:
                             send_message(session_api, event.obj.peer_id, message="Лимит теперь " + str(messages_limit))
                         else:
                             send_message(session_api, event.obj.peer_id, message="Лимит остался прежним")
-                    if eventText.find("порядок") > -1:
-                        if int(eventText[-1]) > 0:
-                            set_order(int(eventText[-1]))
-                            send_message(session_api, event.obj.peer_id, message="Порядок теперь " + str(order))
+                    if eventText.find("предложение") > -1:
+                        if int(eventText[-2]) < 50:
+                            set_sentence_length(int(eventText[-2:]))
+                            send_message(session_api, event.obj.peer_id, message="Длина теперь" + str(messages_limit))
                         else:
-                            send_message(session_api, event.obj.peer_id, message="Порядок остался прежним")
+                            send_message(session_api, event.obj.peer_id, message="Длина осталась прежней")
                     if eventText.find("очистить") > -1:
-                        text = ""
+                        mark.clear_file()
                         messages_counter = 0
             elif event.obj.peer_id == event.obj.from_id:
                 send_message(session_api, event.obj.from_id, message="Каво?")
