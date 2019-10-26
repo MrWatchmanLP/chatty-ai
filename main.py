@@ -1,12 +1,25 @@
+import os.path
 import random
+import emoji
+import datetime
+import mc
+
 import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
+from string import punctuation
 
 token = "8ebd06e6b39901e266522e3bfb750bec56002534ff8d0f9faa8acc1b2a28422770ed7eca2e0dbe30e4ea5"
 vk_session = vk_api.VkApi(token=token)
 session_api = vk_session.get_api()
 longpoll = VkBotLongPoll(vk_session, 178923582)
+
+messages_counter = 0
+messages_limit = 50
+commands = """Команды бота:\n01)@chattyai команды - выводит этот список\n02)@chattyai рыгни - рыгает\n03)@chattyai 
+анекдот - рассказывает анекдот\n04)@chattyai когда заговоришь - сообщает через сколько сообщений бот 
+заговорит\n05)@chattyai лимит (10-99)- устанавливает лимит сообщений сампроизвольного сообщения от бота\n06)@chattyai 
+очистить - очищает данные для обучения """
 
 
 def create_keyboard(response):
@@ -32,91 +45,107 @@ def send_message(session_api, peer_id, message=None, attachment=None, keyboard=N
                               attachment=attachment, keyboard=keyboard, payload=payload)
 
 
-messages_counter = 0
-messages_limit = 50
-commands = "Команды бота:\n\n1)@chattyai рыгни\n2)@chattyai анекдот\n3)@chattyai когда заговоришь\n4)@chattyai " \
-           "лимит\n5)@chattyai предложение\n6)@chattyai очистить "
-
-
-class markov:
-    def __init__(self, markov_order):
-        self.order = markov_order
-        self.group_size = self.order + 1
-        self.file = open("file.txt", "w")
-        self.file.close()
-        self.text = None
-        self.graph = {}
-        return
-
-    def train(self):
-        self.file = open("file.txt", "r")
-        self.text = self.file.read().split()
-        self.text = self.text + self.text[:self.order]
-
-        for i in range(0, len(self.text) - self.group_size):
-
-            key = tuple(self.text[i:i + self.order])
-            value = self.text[i + self.order]
-
-            if key in self.graph:
-                self.graph[key].apped(value)
-            else:
-                self.graph[key] = [value]
-        return
-
-    def add_to_file(self, line):
-        self.file = open("file.txt", "a")
-        self.file.write(line + "\n")
-        self.file.close()
-
-    def clear_file(self):
-        self.file = open("file.txt", "w")
-        self.file.close()
-
-    def generate(self, length):
-        index = random.randint(0, len(self.text) - self.order)
-        result = self.text[index:index + self.order]
-
-        for i in range(length):
-            state = tuple(result[len(result) - self.order:])
-            next_word = random.choice(self.graph[state])
-            result.append(next_word)
-        self.file.close()
-        return " ".join(result[self.order:])
-
-
-mark = markov(5)
-sentence_length = 10
-
-
-def speak():
-    mark.train()
-    sentence = mark.generate(sentence_length)
-    send_message(session_api, event.obj.peer_id, sentence)
-
-
 def set_limit(limit):
     global messages_limit
-    messages_limit = limit
+    if limit >= 10:
+        messages_limit = limit
 
 
-def set_sentence_length(length):
-    global sentence_length
-    sentence_length = length
+def create_or_clear_file(name_of_file):
+    file = open(name_of_file, "w")
+    file.close()
+    print("Created file with name " + name_of_file + " at " + str(datetime.datetime.now()))
+
+
+def append_file(name_of_file, line):
+    name = str(name_of_file) + '.txt'
+    with open(name, 'a') as file:
+        file.write(line + '\n')
+
+
+def check_peer_id(chat_id):
+    name = str(chat_id) + '.txt'
+    if not os.path.exists(name):
+        create_or_clear_file(name)
+
+
+def extract_emojis(line):
+    return ''.join(c for c in line if c not in emoji.UNICODE_EMOJI)
+
+
+def cleanstring(line):
+    return ''.join(x for x in line if x not in punctuation)
+
+
+forbiddensymbols = ("[id", "[club", ".com", ".ru", "be")
+
+
+def check_links(line):
+    global forbiddensymbols
+    for badword in forbiddensymbols:
+        if line.find(badword) > -1:
+            return False
+
+    return True
+
+
+numbers = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
+
+
+def check_numbers(line):
+    if line[-1] in numbers:
+        if line[-2] in numbers:
+            return int(line[-2:])
+        else:
+            return int(line[-1])
+    else:
+        return -1
+
+
+def convert_generated_to_text(generated):
+    result = ""
+    for frame in generated:
+        result += frame + ' '
+
+    return result
+
+
+def try_to_generate(name_of_file):
+    try:
+        data = []
+        with open(name_of_file, 'r') as file:
+            for line in file:
+                data.append(line)
+        generator = mc.StringGenerator(data, 1)
+        message = generator.generate(count=5, upper_first_letter=False)
+        msg = convert_generated_to_text(message)
+        return msg
+    except mc.exceptions:
+        return mc.exceptions
 
 
 while True:
     for event in longpoll.listen():
         if event.type == VkBotEventType.MESSAGE_NEW:
             eventText = event.obj.text.lower()
+            eventText = extract_emojis(eventText)
+            print(eventText)
             if event.obj.peer_id != event.obj.from_id:
-                if eventText != "" and eventText[:25] != "[club178923582|@chattyai]":
-                    mark.add_to_file(eventText)
+                # if there is no messages from this peer_id
+                print("got some message")
+                check_peer_id(event.obj.peer_id)
+                print('peer')
+                if eventText != "" and check_links(eventText):
+                    print('pass')
+                    append_file(event.obj.peer_id, cleanstring(eventText))
+                    print('append')
                     messages_counter += 1
                     if messages_counter >= messages_limit:
                         messages_counter = 0
-                        speak()
-                elif eventText[:25] == "[club178923582|@chattyai]":
+                        filename = str(event.obj.peer_id) + '.txt'
+                        msg = try_to_generate(filename)
+                        send_message(session_api, event.obj.peer_id, msg)
+                if eventText[:25] == "[club178923582|@chattyai]":
                     if eventText.find("команды") > -1:
                         send_message(session_api, event.obj.peer_id, message=commands)
                     if eventText.find("рыгни") > -1:
@@ -127,19 +156,22 @@ while True:
                         msg = str(messages_counter) + "/" + str(messages_limit)
                         send_message(session_api, event.obj.peer_id, msg)
                     if eventText.find("лимит") > -1:
-                        if int(eventText[-2]) < 50:
-                            set_limit(int(eventText[-2:]))
-                            send_message(session_api, event.obj.peer_id, message="Лимит теперь " + str(messages_limit))
-                        else:
-                            send_message(session_api, event.obj.peer_id, message="Лимит остался прежним")
-                    if eventText.find("предложение") > -1:
-                        if int(eventText[-2]) < 50:
-                            set_sentence_length(int(eventText[-2:]))
-                            send_message(session_api, event.obj.peer_id, message="Длина теперь" + str(sentence_length))
-                        else:
-                            send_message(session_api, event.obj.peer_id, message="Длина осталась прежней")
+                        set_limit(check_numbers(eventText))
+                        send_message(session_api, event.obj.peer_id, message="Лимит теперь " + str(messages_limit))
                     if eventText.find("очистить") > -1:
-                        mark.clear_file()
-                        messages_counter = 0
+                        if os.path.getsize(str(event.obj.peer_id) + '.txt') > 0:
+                            create_or_clear_file(str(event.obj.peer_id) + '.txt')
+                            table = {}
+                            messages_counter = 0
+                            send_message(session_api, event.obj.peer_id, message="Файл очищен")
+                    if eventText.find("speak") > -1:
+                        print('got cmd')
+                        if messages_counter > 1:
+                            print('pass x2')
+                            filename = str(event.obj.peer_id) + '.txt'
+                            msg = try_to_generate(filename)
+                            send_message(session_api, event.obj.peer_id, msg)
+                        else:
+                            send_message(session_api, event.obj.peer_id, message='Мало данных')
             elif event.obj.peer_id == event.obj.from_id:
                 send_message(session_api, event.obj.from_id, message="Каво?")
