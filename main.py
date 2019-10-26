@@ -129,16 +129,11 @@ while True:
         if event.type == VkBotEventType.MESSAGE_NEW:
             eventText = event.obj.text.lower()
             eventText = extract_emojis(eventText)
-            print(eventText)
             if event.obj.peer_id != event.obj.from_id:
                 # if there is no messages from this peer_id
-                print("got some message")
                 check_peer_id(event.obj.peer_id)
-                print('peer')
                 if eventText != "" and check_links(eventText):
-                    print('pass')
                     append_file(event.obj.peer_id, cleanstring(eventText))
-                    print('append')
                     messages_counter += 1
                     if messages_counter >= messages_limit:
                         messages_counter = 0
@@ -161,13 +156,10 @@ while True:
                     if eventText.find("очистить") > -1:
                         if os.path.getsize(str(event.obj.peer_id) + '.txt') > 0:
                             create_or_clear_file(str(event.obj.peer_id) + '.txt')
-                            table = {}
                             messages_counter = 0
                             send_message(session_api, event.obj.peer_id, message="Файл очищен")
                     if eventText.find("speak") > -1:
-                        print('got cmd')
                         if messages_counter > 1:
-                            print('pass x2')
                             filename = str(event.obj.peer_id) + '.txt'
                             msg = try_to_generate(filename)
                             send_message(session_api, event.obj.peer_id, msg)
